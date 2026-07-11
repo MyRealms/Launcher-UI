@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using Launcher.Helpers;
 using Launcher.Models;
+using Launcher.Services;
 
 using NLog;
 
@@ -52,6 +53,7 @@ public partial class DeleteServer : Popup
             return false;
         }
 
+        CredentialHelper.Clear(Info);
         Settings.Instance.ServerInfoList.Remove(Info);
         Settings.Instance.Save();
 

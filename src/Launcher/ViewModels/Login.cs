@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 
 using Launcher.Helpers;
 using Launcher.Models;
+using Launcher.Services;
 
 using NLog;
 
@@ -58,7 +59,10 @@ public partial class Login : Popup
         RememberUsername = _server.Info.RememberUsername;
         RememberPassword = _server.Info.RememberPassword;
         Username = RememberUsername ? _server.Info.Username ?? string.Empty : string.Empty;
-        Password = RememberPassword ? _server.Info.Password ?? string.Empty : string.Empty;
+
+        // Move any legacy plaintext password into the OS secret store, then load it back.
+        MigrateLegacyPassword();
+        Password = RememberPassword ? CredentialHelper.GetPassword(_server.Info) ?? string.Empty : string.Empty;
 
         View = new Views.Login
         {
@@ -83,7 +87,7 @@ public partial class Login : Popup
         _server.Info.RememberPassword = value;
 
         if (!value)
-            _server.Info.Password = null;
+            CredentialHelper.Clear(_server.Info);
 
         Settings.Instance.Save();
     }
@@ -173,8 +177,26 @@ public partial class Login : Popup
     private void SaveRememberedCredentials()
     {
         _server.Info.Username = RememberUsername && !string.IsNullOrEmpty(Username) ? Username : null;
-        _server.Info.Password = RememberPassword && !string.IsNullOrEmpty(Password) ? Password : null;
 
+        if (RememberPassword && !string.IsNullOrEmpty(Password))
+            CredentialHelper.SavePassword(_server.Info, Password);
+        else
+            CredentialHelper.Clear(_server.Info);
+
+        Settings.Instance.Save();
+    }
+
+    private void MigrateLegacyPassword()
+    {
+        var legacyPassword = _server.Info.LegacyPassword;
+
+        if (string.IsNullOrEmpty(legacyPassword))
+            return;
+
+        if (_server.Info.RememberPassword)
+            CredentialHelper.SavePassword(_server.Info, legacyPassword);
+
+        _server.Info.LegacyPassword = null;
         Settings.Instance.Save();
     }
 
