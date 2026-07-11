@@ -7,6 +7,11 @@ on:
         description: "Version to tag the release with (e.g. 1.0.0)"
         required: true
         type: string
+      publish:
+        description: "Publish a GitHub Release (otherwise assets are only staged as a dry run)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -63,3 +68,61 @@ jobs:
           name: OSFRLauncher-${{ inputs.version }}-${{ matrix.flavor }}
           path: releases/
           if-no-files-found: error
+
+  release:
+    name: Publish Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
+      - name: Stage release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          mkdir -p staging
+
+          for dir in artifacts/*/; do
+            channel=""
+            for manifest in "$dir"releases.*.json; do
+              channel="$(basename "$manifest" .json)"
+              channel="${channel#releases.}"
+            done
+
+            if [ -z "$channel" ]; then
+              echo "::error::No releases.*.json manifest found in $dir"
+              exit 1
+            fi
+
+            for file in "$dir"*; do
+              [ -f "$file" ] || continue
+              name="$(basename "$file")"
+
+              if [[ "$name" == *"$channel"* ]]; then
+                # already includes channel in name
+                cp "$file" "staging/$name"
+              elif [[ "$name" == *.* ]]; then
+                # add channel before extension to disambiguate (e.g. OSFRLauncher.AppImage)
+                cp "$file" "staging/${name%.*}-${channel}.${name##*.}"
+              else
+                # add channel at the end of the name to disambiguate (e.g. RELEASES)
+                cp "$file" "staging/${name}-${channel}"
+              fi
+            done
+          done
+
+          echo "Staged release assets:"
+          ls -1 staging
+
+      - name: Publish GitHub Release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ inputs.version }}" staging/* --repo "$GITHUB_REPOSITORY" --title "v${{ inputs.version }}" --latest
