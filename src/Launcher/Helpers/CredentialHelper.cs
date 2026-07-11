@@ -16,22 +16,33 @@ public static class CredentialHelper
     private const string PasswordService = "passwords";
 
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-    private static readonly ICredentialStore _store = CreateStore();
+    private static readonly ICredentialStore? _store = CreateStore();
 
-    private static ICredentialStore CreateStore()
+    private static ICredentialStore? CreateStore()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
-            string.IsNullOrEmpty(Environment.GetEnvironmentVariable(LinuxCredStoreEnv)))
+        try
         {
-            // Almost all Linux DEs use credential managers that implement the secret service
-            Environment.SetEnvironmentVariable(LinuxCredStoreEnv, "secretservice");
-        }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
+                string.IsNullOrEmpty(Environment.GetEnvironmentVariable(LinuxCredStoreEnv)))
+            {
+                // Almost all Linux DEs use credential managers that implement the secret service
+                Environment.SetEnvironmentVariable(LinuxCredStoreEnv, "secretservice");
+            }
 
-        return CredentialManager.Create("OSFRLauncher");
+            return CredentialManager.Create("OSFRLauncher");
+        }
+        catch (Exception ex)
+        {
+            _logger.Warn(ex, "Credential store unavailable.");
+            return null;
+        }
     }
 
     public static string? GetPassword(ServerInfo server)
     {
+        if (_store is null)
+            return null;
+
         try
         {
             return _store.Get(PasswordService, server.SavePath)?.Password;
@@ -46,6 +57,9 @@ public static class CredentialHelper
 
     public static void SavePassword(ServerInfo server, string password)
     {
+        if (_store is null)
+            return;
+
         try
         {
             _store.AddOrUpdate(PasswordService, server.SavePath, password);
@@ -58,6 +72,9 @@ public static class CredentialHelper
 
     public static void Clear(ServerInfo server)
     {
+        if (_store is null)
+            return;
+
         try
         {
             _store.Remove(PasswordService, server.SavePath);
