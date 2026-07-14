@@ -10,10 +10,10 @@
         xmlns:vm="using:Launcher.ViewModels"
         Title="{StaticResource Text.Settings}"
         Width="400"
-        Height="220"
+        Height="250"
         MinWidth="400"
-        MinHeight="220"
-        d:DesignHeight="220"
+        MinHeight="250"
+        d:DesignHeight="250"
         d:DesignWidth="400"
         x:DataType="vm:Settings"
         Background="{StaticResource Color.Window}"
@@ -22,29 +22,63 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d">
 
+  <Window.Styles>
+    <Style Selector="TextBox.settings-input">
+      <Setter Property="Background" Value="#1A1A1A" />
+      <Setter Property="BorderBrush" Value="#3C4C74" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style Selector="TextBox.settings-input:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#1A1A1A" />
+      <Setter Property="BorderBrush" Value="#5C6C94" />
+    </Style>
+    <Style Selector="TextBox.settings-input:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#1A1A1A" />
+      <Setter Property="BorderBrush" Value="#7C8CB4" />
+    </Style>
+  </Window.Styles>
+
   <TabControl>
     <TabItem Header="{StaticResource Text.Settings}">
 
       <Grid Margin="10"
             ColumnDefinitions="Auto,*"
-            RowDefinitions="30,30,40,40">
+            RowDefinitions="30,30,30,40,40">
+
+        <!-- Display Name -->
+        <TextBlock Grid.Row="0"
+                   Grid.Column="0"
+                   VerticalAlignment="Center"
+                   FontSize="13"
+                   Text="Display Name:" />
+
+        <TextBox Grid.Row="0"
+                 Grid.Column="1"
+                 Width="200"
+                 Height="28"
+                 Margin="5,0,0,0"
+                 VerticalAlignment="Center"
+                 Classes="settings-input"
+                 Foreground="White"
+                 Text="{Binding DisplayName, Mode=TwoWay}" />
 
         <!-- Discord Activity Checkbox -->
-        <CheckBox Grid.Row="0"
+        <CheckBox Grid.Row="1"
                   Grid.ColumnSpan="2"
                   Content="{StaticResource Text.Settings.General.DiscordActivity}"
                   IsChecked="{Binding DiscordActivity, Mode=TwoWay}"
                   ToolTip.Tip="{StaticResource Text.Settings.General.DiscordActivity.Tooltip}" />
 
         <!-- Parallel Download Checkbox -->
-        <CheckBox Grid.Row="1"
+        <CheckBox Grid.Row="2"
                   Grid.ColumnSpan="2"
                   Content="{StaticResource Text.Settings.General.ParallelDownload}"
                   IsChecked="{Binding ParallelDownload, Mode=TwoWay}"
                   ToolTip.Tip="{StaticResource Text.Settings.General.ParallelDownload.Tooltip}" />
 
         <!-- Download Threads Label -->
-        <TextBlock Grid.Row="2"
+        <TextBlock Grid.Row="3"
                    Grid.Column="0"
                    Margin="0,8,0,0"
                    VerticalAlignment="Center"
@@ -52,7 +86,7 @@
                    Text="{StaticResource Text.Settings.General.ParallelDownloads}" />
 
         <!-- Download Threads NumericUpDown -->
-        <avalonia:NumericUpDown Grid.Row="2"
+        <avalonia:NumericUpDown Grid.Row="3"
                                 Grid.Column="1"
                                 Width="120"
                                 Margin="5,8,0,0"
@@ -84,14 +118,14 @@
         </avalonia:NumericUpDown>
 
         <!-- Game Language -->
-        <TextBlock Grid.Row="3"
+        <TextBlock Grid.Row="4"
                    Grid.Column="0"
                    VerticalAlignment="Center"
                    FontSize="13"
                    Text="{StaticResource Text.Settings.General.Locale}" />
 
         <!-- Locale ComboBox -->
-        <ComboBox Grid.Row="3"
+        <ComboBox Grid.Row="4"
                   Grid.Column="1"
                   Width="250"
                   Margin="-12,2,0,0"

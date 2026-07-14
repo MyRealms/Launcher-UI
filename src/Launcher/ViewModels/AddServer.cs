@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 using Launcher.Extensions;
 using Launcher.Helpers;
@@ -17,11 +18,18 @@ public partial class AddServer : Popup
 {
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
+    private readonly ServerInfo? _editingInfo;
+
     [Required]
     [ObservableProperty]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(AddServer), nameof(ValidateServerUrl))]
     private string serverUrl = string.Empty;
+
+    [ObservableProperty]
+    private string serverName = string.Empty;
+
+    public bool IsEditMode => _editingInfo is not null;
 
     public AddServer()
     {
@@ -29,6 +37,32 @@ public partial class AddServer : Popup
         {
             DataContext = this
         };
+    }
+
+    public AddServer(ServerInfo info)
+    {
+        _editingInfo = info;
+
+        ServerUrl = info.Url;
+        ServerName = info.Name;
+
+        View = new Views.AddServer
+        {
+            DataContext = this
+        };
+    }
+
+    [RelayCommand]
+    public void Delete()
+    {
+        if (_editingInfo is null)
+            return;
+
+        Settings.Instance.ServerInfoList.Remove(_editingInfo);
+        Settings.Instance.Save();
+
+        App.CancelPopup();
+        App.AddNotification("Server deleted.", false);
     }
 
     public static ValidationResult? ValidateServerUrl(string serverUrl, ValidationContext context)
@@ -54,7 +88,26 @@ public partial class AddServer : Popup
     {
         ProgressDescription = App.GetText("Text.Add_Server.Loading");
 
-        return TryAddServerAsync(ServerUrl);
+        return IsEditMode ? OnEditServerAsync() : TryAddServerAsync(ServerUrl);
+    }
+
+    private Task<bool> OnEditServerAsync()
+    {
+        try
+        {
+            _editingInfo!.Url = ServerUrl.Trim();
+            _editingInfo.Name = ServerName.Trim();
+
+            Settings.Instance.Save();
+
+            return Task.FromResult(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "An exception occurred while updating server.");
+            App.AddNotification("An error occurred while updating server.", true);
+            return Task.FromResult(false);
+        }
     }
 
     public static async Task<bool> TryAddServerAsync(string serverUrl)

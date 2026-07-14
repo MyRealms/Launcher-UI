@@ -36,6 +36,10 @@ public partial class Main : ObservableObject
     [ObservableProperty]
     private SemanticVersion version = App.CurrentVersion;
 
+    public string DisplayName => Settings.Instance.DisplayName;
+
+    public bool IsGameRunning => Servers.Any(x => x.Process is not null);
+
     public AvaloniaList<Server> Servers { get; } = [];
     public AvaloniaList<Notification> Notifications { get; } = [];
 
@@ -54,6 +58,11 @@ public partial class Main : ObservableObject
         // Subscribe to changes in the server list from settings to keep the UI in sync.
         Settings.Instance.ServerInfoList.CollectionChanged += ServerInfoList_CollectionChanged;
         Settings.Instance.DiscordActivityChanged += (_, _) => UpdateDiscordActivity();
+        Settings.Instance.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(Settings.DisplayName))
+                OnPropertyChanged(nameof(DisplayName));
+        };
     }
 
     private void ServerInfoList_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -85,7 +94,7 @@ public partial class Main : ObservableObject
             _logger.Info("No servers found in settings. Adding default servers.");
             foreach (var defaultServerUrl in Constants.DefaultServerUrls)
             {
-                _ = AddServer.TryAddServerAsync(defaultServerUrl);
+                _ = ViewModels.AddServer.TryAddServerAsync(defaultServerUrl);
             }
         }
 
@@ -107,6 +116,11 @@ public partial class Main : ObservableObject
         DiscordService.UpdateActivity(details, playingOn);
     }
 
+    public void RefreshRuntimeState()
+    {
+        OnPropertyChanged(nameof(IsGameRunning));
+    }
+
     [RelayCommand]
     public Task CheckForUpdates() => App.CheckForUpdatesAsync();
 
@@ -121,6 +135,43 @@ public partial class Main : ObservableObject
 
     [RelayCommand]
     public void ShowAddServer() => App.ShowPopup(new AddServer());
+
+    [RelayCommand]
+    public void AddServer() => App.ShowPopup(new AddServer());
+
+    public void EditServer(Server server)
+    {
+        var viewModel = new AddServer(server.Info);
+        App.ShowPopup(viewModel, process: false);
+    }
+
+    [RelayCommand]
+    public async Task OpenDiscordAsync()
+    {
+        try
+        {
+            var window = App.GetWindow();
+            await window.Launcher.LaunchUriAsync(new Uri("https://discord.gg/x7Xfz99Ydv"));
+        }
+        catch
+        {
+            App.AddNotification("Unable to open Discord link.", true);
+        }
+    }
+
+    [RelayCommand]
+    public async Task OpenRedditAsync()
+    {
+        try
+        {
+            var window = App.GetWindow();
+            await window.Launcher.LaunchUriAsync(new Uri("https://www.reddit.com/r/freerealms/"));
+        }
+        catch
+        {
+            App.AddNotification("Unable to open Reddit link.", true);
+        }
+    }
 
     [RelayCommand]
     public async Task OpenLogsAsync()

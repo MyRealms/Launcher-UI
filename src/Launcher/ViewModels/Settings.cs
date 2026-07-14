@@ -35,6 +35,9 @@ public partial class Settings : ObservableObject
     private LocaleType locale = LocaleType.en_US;
 
     [ObservableProperty]
+    private string displayName = "User";
+
+    [ObservableProperty]
     private AvaloniaList<ServerInfo> serverInfoList = [];
 
     public event EventHandler? LocaleChanged;
@@ -70,6 +73,9 @@ public partial class Settings : ObservableObject
 
     partial void OnLocaleChanged(LocaleType value)
         => LocaleChanged?.Invoke(this, EventArgs.Empty);
+
+    partial void OnDisplayNameChanged(string value)
+        => Save();
 
     partial void OnDiscordActivityChanged(bool value)
     {

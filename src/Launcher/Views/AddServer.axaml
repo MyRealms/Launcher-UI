@@ -11,7 +11,7 @@
              x:DataType="vm:AddServer"
              mc:Ignorable="d">
 
-  <Grid RowDefinitions="Auto,Auto,Auto">
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
     <!-- Header -->
     <Grid Grid.Row="0"
@@ -22,7 +22,7 @@
                  Text="{StaticResource Text.Add_Server.ServerUrl}" />
     </Grid>
 
-    <!-- Input -->
+    <!-- URL Input -->
     <Grid Grid.Row="1"
           HorizontalAlignment="Center"
           VerticalAlignment="Center">
@@ -41,12 +41,36 @@
                Text="{Binding ServerUrl, Mode=TwoWay}" />
     </Grid>
 
+    <!-- Name Field -->
+    <StackPanel Grid.Row="2"
+                Margin="0,10,0,0"
+                Spacing="10">
+
+      <TextBlock HorizontalAlignment="Center"
+                 FontFamily="{StaticResource FontDefault}"
+                 FontSize="14"
+                 Text="Server Name" />
+
+      <Grid HorizontalAlignment="Center">
+        <Image Source="/Assets/fr_asset4.png" Stretch="None" />
+        <TextBox Width="254"
+                 Height="22"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 CaretBrush="Black"
+                 FontSize="13"
+                 FontWeight="SemiBold"
+                 Foreground="Black"
+                 Text="{Binding ServerName, Mode=TwoWay}" />
+      </Grid>
+    </StackPanel>
+
     <!-- Buttons -->
-    <Grid Grid.Row="2"
+    <Grid Grid.Row="3"
           Margin="0,10,0,0"
           HorizontalAlignment="Center"
           VerticalAlignment="Center"
-          ColumnDefinitions="Auto,Auto">
+          ColumnDefinitions="Auto,Auto,Auto">
 
       <Button Grid.Column="0"
               Margin="5,0"
@@ -75,6 +99,22 @@
             <GradientStop Offset="0.0" Color="#96B9D9" />
             <GradientStop Offset="4.0" Color="#202959" />
             <GradientStop Offset="0.8" Color="#37538C" />
+          </LinearGradientBrush>
+        </Button.Background>
+      </Button>
+
+      <Button Grid.Column="2"
+              Margin="5,0"
+              Classes="flat primary"
+              Command="{Binding DeleteCommand}"
+              Content="{StaticResource Text.Delete_Server}"
+              FontFamily="{StaticResource FontDefault}"
+              IsVisible="{Binding IsEditMode}">
+        <Button.Background>
+          <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+            <GradientStop Offset="0.0" Color="#D99696" />
+            <GradientStop Offset="4.0" Color="#592020" />
+            <GradientStop Offset="0.8" Color="#8C3737" />
           </LinearGradientBrush>
         </Button.Background>
       </Button>

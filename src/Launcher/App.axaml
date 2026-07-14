@@ -16,7 +16,8 @@
       </ResourceDictionary.MergedDictionaries>
 
       <!-- Additional Resources -->
-      <FontFamily x:Key="FontDefault">/Assets/Fonts/Maiandra-GD-Regular.otf#Maiandra GD</FontFamily>
+      <FontFamily x:Key="FontDefault">/Assets/Fonts/FreeRealms.ttf#FreeRealms</FontFamily>
+      <FontFamily x:Key="FontFallback">/Assets/Fonts/Maiandra-GD-Regular.otf#Maiandra GD</FontFamily>
     </ResourceDictionary>
   </Application.Resources>
 

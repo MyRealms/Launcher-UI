@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -67,6 +69,17 @@ public partial class Server : ObservableObject
     [ObservableProperty]
     private ObservableStringBuilder markdownBuilder = new();
 
+    public bool IsLocalServer => false;
+
+    public string ProfileTitle => Info?.Name ?? "Unknown Server";
+
+    public string ProfileSubtitle => IsOnline ? "Online" : "Offline";
+
+    private static readonly IImage IconGreen = new Bitmap(AssetLoader.Open(new Uri("avares://Launcher/Assets/ServerIcons/Server_Icon_Green.png")));
+    private static readonly IImage IconRed = new Bitmap(AssetLoader.Open(new Uri("avares://Launcher/Assets/ServerIcons/Server_Icon_Red.png")));
+
+    public IImage ServerIconSource => IsOnline ? IconGreen : IconRed;
+
     public Server()
     {
 #if DEBUG && DESIGNMODE
@@ -105,6 +118,13 @@ public partial class Server : ObservableObject
     {
         Process?.Dispose();
         Process = null;
+    }
+
+    [RelayCommand]
+    private async Task EditAsync()
+    {
+        _main.EditServer(this);
+        await OnShowAsync();
     }
 
     [RelayCommand]
