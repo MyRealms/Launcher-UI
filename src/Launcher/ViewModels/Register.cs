@@ -15,7 +15,8 @@ namespace Launcher.ViewModels;
 
 public partial class Register : Popup
 {
-    private readonly Server _server;
+    private readonly Server? _server;
+    private readonly ServerInfo? _serverInfo;
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     [ObservableProperty]
@@ -57,6 +58,20 @@ public partial class Register : Popup
         };
     }
 
+    public Register(ServerInfo serverInfo)
+    {
+        _serverInfo = serverInfo;
+
+        AddSecureWarning();
+
+        View = new Views.Register
+        {
+            DataContext = this
+        };
+    }
+
+    private ServerInfo Info => _server?.Info ?? _serverInfo!;
+
     public static ValidationResult? ValidateConfirmPassword(string confirmPassword, ValidationContext context)
     {
         if (context.ObjectInstance is not Register register)
@@ -82,7 +97,7 @@ public partial class Register : Popup
                 Password = Password
             };
 
-            var baseUri = new Uri(_server.Info.WebApiUrl);
+            var baseUri = new Uri(Info.WebApiUrl);
 
             var registerUri = new Uri(baseUri, "register");
 
@@ -101,7 +116,7 @@ public partial class Register : Popup
             {
                 App.AddNotification("Registration failed. Please check your username and password and try again", true);
 
-                _logger.Warn("Registration failed for server: '{Name}'. API returned {StatusCode}: {Reason}.", _server.Info.Name, httpResponse.StatusCode, httpResponse.ReasonPhrase);
+                _logger.Warn("Registration failed for server: '{Name}'. API returned {StatusCode}: {Reason}.", Info.Name, httpResponse.StatusCode, httpResponse.ReasonPhrase);
 
                 Username = string.Empty;
                 Password = string.Empty;
@@ -117,7 +132,7 @@ public partial class Register : Popup
         {
             App.AddNotification("Registration failed. Please check your username and password and try again", true);
 
-            _logger.Error(ex, "An exception occurred registering on server: '{Name}'.", _server.Info.Name);
+            _logger.Error(ex, "An exception occurred registering on server: '{Name}'.", Info.Name);
 
             return false;
         }
@@ -125,7 +140,7 @@ public partial class Register : Popup
 
     private void AddSecureWarning()
     {
-        if (Uri.TryCreate(_server.Info.WebApiUrl, UriKind.Absolute, out var webApiUrl)
+        if (Uri.TryCreate(Info.WebApiUrl, UriKind.Absolute, out var webApiUrl)
             && webApiUrl.Scheme != Uri.UriSchemeHttps)
         {
             Warning = App.GetText("Text.Server.SecureApiWarning");

@@ -65,6 +65,16 @@ public partial class AddServer : Popup
         App.AddNotification("Server deleted.", false);
     }
 
+    [RelayCommand]
+    public void Register()
+    {
+        if (_editingInfo is null)
+            return;
+
+        App.CancelPopup();
+        App.ShowPopup(new Register(_editingInfo));
+    }
+
     public static ValidationResult? ValidateServerUrl(string serverUrl, ValidationContext context)
     {
         if (string.IsNullOrWhiteSpace(serverUrl))
